@@ -10,18 +10,20 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
 # Das feingetunte Modell laden
-model.load_state_dict(torch.load("clip_finetuned.pth", map_location=device))
+model.load_state_dict(torch.load("clip_finetuned.pth", map_location=device, weights_only=True))
 model.eval()  # Modell in den Evaluierungsmodus versetzen
 
 # Liste mit möglichen Textlabels laden (aus der gleichen CSV wie beim Training)
 csv_filename = "image_labels.csv"
 df = pd.read_csv(csv_filename)  # Erwartet Spalten: "image_path", "text_label"
 text_labels = df["text_label"].tolist()
+#text_labels = ["Blaues Design", "Desktopsymbol", "Dunkles Design", "Eingabeaufforderung", "Helles Design",
+ #              "Icons", "Text und Blau", "Text und Grau", "Text und Schwarz"]
 
 # Texte für CLIP tokenisieren
 text_inputs = clip.tokenize(text_labels).to(device)
 
-# **🔹 Funktion zum Erkennen eines neuen Bildes**
+#  Funktion zum Erkennen eines neuen Bildes**
 def predict_image(image_path):
     """Verwendet das feingetunte CLIP-Modell, um das Bild zu klassifizieren."""
     image = preprocess(Image.open(image_path)).unsqueeze(0).to(device)
@@ -41,8 +43,8 @@ def predict_image(image_path):
 
         return text_labels[best_match], similarity[0][best_match]
 
-# **🔹 Beispielaufruf:**
-rdp_image = "bitmaps\\Cache0000.bin_0016.bmp"  # Ersetze mit deinem Pfad
+
+rdp_image = "bitmaps\\Cache0000.bin_1116.bmp"
 predicted_label, confidence = predict_image(rdp_image)
 
-print(f"Vorhersage: {predicted_label} (Konfidenz: {confidence:.2f})")
+print(f"Vorhersage: {predicted_label} für {rdp_image}")
